@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
-  title: 'Vocora App',
-  description: 'Created by Perla',
+  title: 'Personal Vocora Draft',
+  description: 'Created by Andrea',
 }
 
 export default function RootLayout({
