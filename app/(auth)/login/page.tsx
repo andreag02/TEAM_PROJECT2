@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Icons } from "@/components/ui/icons"
 import { Navbar } from "@/components/Navbar"
+import { supabase } from "@/lib/supabase"
 
 function LoginForm({
   isLoading,
@@ -72,26 +73,51 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
 
-    try {
-      // Simulate some async operation
-      await new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-          // Simulate a random error for demonstration purposes
-          if (Math.random() < 0.3) {
-            reject(new Error("Random error occurred"))
-          } else {
-            resolve()
-          }
-        }, 1000)
-      })
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
-      // Log the form data (for demonstration purposes only)
-      const form = event.currentTarget
-      const formData = new FormData(form)
-      const formObject = Object.fromEntries(formData.entries())
-      console.log("Form data:", formObject)
+    try {
+      let data, error;
+      
+      // Handles sign up
+      if (isSignUp) {
+        const { data:signUpData, error: signUpError } = await supabase.auth.signUp({ email, password,
+          options: {
+            // Stores user's information in Supabase
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              display_name: `${firstName} ${lastName}`,
+            },
+          },
+         });
+        data = signUpData;
+        error = signUpError;
+
+        if (error) throw new Error(error.message);
+      } 
+      // Handles login
+      else {
+        const { data:loginData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        data = loginData;
+        error = signInError;
+
+        if (error) {
+          // Update error message for email not confirmed
+          if (error.message.includes("Email not confirmed")) {
+            throw new Error("Please verify your email before logging in");
+          } else{
+            throw new Error(error.message);
+          }
+        }
+      }
 
       // Navigate to the success page
+      console.log("Authentication successful.", data);
       router.push("/success")
     } catch (error) {
       console.error("Error during form submission:", error)
@@ -99,6 +125,31 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  async function handleGoogleSignIn() {
+    // Set loading state and clear any previous errors
+    setIsLoading(true);
+    setError(null);
+    
+    // Redirect URL for OAuth
+    const redirectURL = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL;
+
+    // Initiates sign-in process w/ Google using Supabase authentication
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: redirectURL,
+      },
+    });
+
+    if (error) {
+      console.error("Google OAuth Error:", error.message);
+      setError(error.message);
+    }
+
+    // Reset loading state
+    setIsLoading(false);
   }
 
   return (
@@ -123,7 +174,8 @@ export default function LoginPage() {
             )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button variant="outline" className="w-full border-[#9747FF] text-[#9747FF] hover:bg-[#9747FF]/10" onClick={() => router.push("/success")}>
+            <Button variant="outline" className="w-full border-[#9747FF] text-[#9747FF] hover:bg-[#9747FF]/10" onClick={handleGoogleSignIn}
+            >
               <Icons.google className="mr-2 h-4 w-4" />
               {isSignUp ? "Sign up" : "Sign in"} with Google
             </Button>
