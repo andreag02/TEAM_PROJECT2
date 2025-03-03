@@ -25,7 +25,7 @@ export function Navbar() {
               Log In
             </Button>
           </Link>
-          <Link href="/login?signup=true">
+          <Link href="/signup">
             <Button className="bg-[#9747FF] text-white hover:bg-[#8A3DEE]">
               Sign Up
             </Button>
