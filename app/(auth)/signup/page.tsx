@@ -79,6 +79,31 @@ export default function SignUpPage() {
         setIsLoading(false)
     }
 }
+
+async function handleGoogleSignUp() {
+  // Set loading state and clear any previous errors
+  setIsLoading(true);
+  setError(null);
+  
+  // Redirect URL for OAuth
+  const redirectURL = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URL;
+
+  // Initiates sign-up process w/ Google using Supabase authentication
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: redirectURL,
+    },
+  });
+
+  if (error) {
+    console.error("Google OAuth Error:", error.message);
+    setError(error.message);
+  }
+
+  // Reset loading state
+  setIsLoading(false);
+}
   
 
 return (
@@ -97,7 +122,7 @@ return (
             <SignUpForm isLoading={isLoading} onSubmit={onSubmit} />
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button variant="outline" className="w-full border-[#9747FF] text-[#9747FF] hover:bg-[#9747FF]/10"
+          <Button variant="outline" className="w-full border-[#9747FF] text-[#9747FF] hover:bg-[#9747FF]/10" onClick={handleGoogleSignUp}
             >
               <Icons.google className="mr-2 h-4 w-4" />
               Sign up with Google
