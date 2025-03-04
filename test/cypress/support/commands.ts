@@ -35,3 +35,40 @@
 //     }
 //   }
 // }
+
+// This new command will delete a test user from Supabase using the Supabase Admin API
+Cypress.Commands.add("deleteTestUser", (email: string) => {
+    // Fetch the user by email first
+    cy.request({
+      method: "GET",
+      url: `${Cypress.env("SUPABASE_URL")}/auth/v1/admin/users`,
+      headers: {
+        apiKey: Cypress.env("SUPABASE_SERVICE_ROLE_KEY"),
+        Authorization: `Bearer ${Cypress.env("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+    }).then((response) => {
+      const user = response.body.users.find((user: any) => user.email === email);
+      if (user) {
+        // Gets the user ID from the response body
+        const userId = user.id;
+  
+        // Delete the user using the user ID
+        cy.request({
+          method: "DELETE",
+          url: `${Cypress.env("SUPABASE_URL")}/auth/v1/admin/users/${userId}`,
+          headers: {
+            apiKey: Cypress.env("SUPABASE_SERVICE_ROLE_KEY"),
+            Authorization: `Bearer ${Cypress.env("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+        }).then((deleteResponse) => {
+            // Verify if the user was deleted successfully
+            expect(deleteResponse.status).to.equal(200);
+        });
+      } else {
+        // Log a message if the user was not found
+        cy.log(`User ${email} not found, skipping delete.`);
+      }
+    });
+  });
+  
+  

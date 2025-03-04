@@ -5,6 +5,11 @@ describe("User Signup Test", () => {
       // Generate a random email for regular sign-up
       tempEmail = `testuser+${Date.now()}@mailinator.com`;
     });
+
+    after(() => {
+      // Clean up the test user after the test suite
+      cy.deleteTestUser(tempEmail);
+    });
   
     it("should allow a user to sign up with email and password", () => {
       // Visit the Sign Up page
