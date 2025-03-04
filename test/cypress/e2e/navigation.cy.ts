@@ -17,13 +17,13 @@ describe("Navigation Test", () => {
     cy.visit("http://localhost:3000/");
     cy.contains("Log In").click();
     cy.url().should("include", "/login");
-    cy.contains("Log in").should("be.visible");
+    cy.contains("Sign in").should("be.visible");
   });
 
   it("should navigate to the sign in page when clicking Let's Get Started", () => {
     cy.visit("http://localhost:3000/");
     cy.contains("Let's Get Started").click();
     cy.url().should("include", "/login");
-    cy.contains("Log in").should("be.visible");
+    cy.contains("Sign in").should("be.visible");
   });
 });
