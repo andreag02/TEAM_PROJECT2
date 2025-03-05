@@ -11,6 +11,7 @@ export default function SuccessPage() {
   const [newWord, setNewWord] = useState("");
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
   const [generatedStory, setGeneratedStory] = useState("");
+  const [highlightedStory, setHighlightedStory] = useState<string>("");
   
   // This function fetches words from the Supabase database
   useEffect(() => {
@@ -64,9 +65,22 @@ export default function SuccessPage() {
     const data = await response.json();
     if (data?.story) {
       setGeneratedStory(data.story);
+      applyHighlighting(data.story);
     } else {
       setGeneratedStory("Failed to generate story.");
     }
+  };
+
+  // This function applies highlighting to the generated story
+  const applyHighlighting = (story: string) => {
+    let highlightedText = story;
+  
+    Array.from(selectedWords).forEach((word) => {
+      const regex = new RegExp(`\\b${word}\\b`, "gi");
+      highlightedText = highlightedText.replace(regex, `<span class="bg-yellow-300 font-bold px-1 rounded">${word}</span>`);
+    });
+  
+    setHighlightedStory(highlightedText);
   };
 
   return (
@@ -103,11 +117,15 @@ export default function SuccessPage() {
             Generate Story
           </Button>
           <div className="bg-gray-50 rounded-lg p-6">
-          {generatedStory && (
-            <div className="bg-gray-50 rounded-lg p-6 mt-4">
-              <p className="text-gray-600">{generatedStory}</p>
-            </div>
-          )}
+            {highlightedStory ? (
+              <div className="bg-gray-50 rounded-lg p-6 mt-4">
+                <p className="text-gray-600" dangerouslySetInnerHTML={{ __html: highlightedStory }} />
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-6 mt-4">
+                <p className="text-gray-600">{generatedStory}</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
